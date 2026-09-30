@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Файл жүктеу</title>
 <style>
   :root { --bg:#f3f5fb; --card:#fff; --text:#1c2333; --muted:#6b7385; --accent:#3b5bdb; --border:#d9deea; --ok:#2b8a3e; --err:#c92a2a; }
   * { box-sizing: border-box; }
@@ -48,7 +48,10 @@
 </div>
 
 <script>
+  // Apps Script "Web app URL" сілтемесін осында қойыңыз (/exec-пен аяқталады)
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5xHgFsc0vfgqa0RuI6Xirfos6MavFaS7eOTgkler65HO8yy6YPIKYJlpDz0OT1eLB/exec';
   const MAX_MB = 20;
+
   const $ = id => document.getElementById(id);
   const drop = $('drop'), fileInput = $('file');
   let chosen = null;
@@ -64,9 +67,10 @@
   drop.addEventListener('drop', ev => { if (ev.dataTransfer.files[0]) setFile(ev.dataTransfer.files[0]); });
 
   function show(text, cls) { const m = $('msg'); m.textContent = text; m.className = cls || ''; }
+  function fail(text) { $('bar').style.display = 'none'; $('btn').disabled = false; show(text, 'err'); }
 
   $('btn').onclick = () => {
-    if ($('btn').disabled) return; // қайталап басудан қорғаныс
+    if ($('btn').disabled) return;
     const group = $('group').value.trim();
     const fullName = $('fullName').value.trim();
     if (!group || !fullName) return show('Оқу тобын және аты-жөніңізді жазыңыз.', 'err');
@@ -76,24 +80,28 @@
     $('btn').disabled = true; $('bar').style.display = 'block'; show('Жүктелуде...');
 
     const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result.split(',')[1];
-      google.script.run
-        .withSuccessHandler(() => {
-          $('bar').style.display = 'none';
-          // Сәтті жүктелгеннен кейін түйме қайта басылмайды
-          $('btn').disabled = true; $('btn').textContent = 'Жүктелді ✔';
-          ['group','fullName','file'].forEach(id => $(id).disabled = true);
-          drop.style.pointerEvents = 'none'; drop.style.opacity = '.6';
-          show('Файл сәтті жүктелді ✔', 'ok');
-        })
-        .withFailureHandler(err => {
-          $('bar').style.display = 'none'; $('btn').disabled = false;
-          show('Қате: ' + (err.message || err), 'err');
-        })
-        .uploadFile({ group, fullName, fileName: chosen.name, mimeType: chosen.type, base64 });
+    reader.onload = async () => {
+      try {
+        const base64 = reader.result.split(',')[1];
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          // text/plain — CORS preflight болмауы үшін
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ group, fullName, fileName: chosen.name, mimeType: chosen.type, base64 })
+        });
+        const out = await res.json();
+        if (!out.ok) return fail('Қате: ' + out.error);
+
+        $('bar').style.display = 'none';
+        $('btn').disabled = true; $('btn').textContent = 'Жүктелді ✔';
+        ['group','fullName','file'].forEach(id => $(id).disabled = true);
+        drop.style.pointerEvents = 'none'; drop.style.opacity = '.6';
+        show('Файл сәтті жүктелді ✔', 'ok');
+      } catch (err) {
+        fail('Қате: серверге қосыла алмады. Қайталап көріңіз.');
+      }
     };
-    reader.onerror = () => { $('bar').style.display = 'none'; $('btn').disabled = false; show('Файлды оқу мүмкін болмады.', 'err'); };
+    reader.onerror = () => fail('Файлды оқу мүмкін болмады.');
     reader.readAsDataURL(chosen);
   };
 </script>
