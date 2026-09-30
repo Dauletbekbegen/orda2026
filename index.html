@@ -12,8 +12,8 @@
   h1 { margin:0 0 4px; font-size:22px; }
   p.sub { margin:0 0 22px; color:var(--muted); font-size:14px; }
   label { display:block; font-size:14px; font-weight:600; margin:14px 0 6px; }
-  input[type=text] { width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; font-size:16px; }
-  input[type=text]:focus { outline:2px solid var(--accent); border-color:transparent; }
+  input[type=text], select { width:100%; background:#fff; color:var(--text); padding:12px; border:1px solid var(--border); border-radius:10px; font-size:16px; }
+  input[type=text]:focus, select:focus { outline:2px solid var(--accent); border-color:transparent; }
   .drop { border:2px dashed var(--border); border-radius:12px; padding:22px; text-align:center; cursor:pointer; color:var(--muted); font-size:14px; transition:.15s; }
   .drop.over, .drop:hover { border-color:var(--accent); background:#f0f3ff; }
   .drop b { color:var(--text); display:block; word-break:break-all; }
@@ -33,7 +33,15 @@
   <p class="sub">Форманы толтырып, файлды таңдаңыз</p>
 
   <label for="group">Оқу тобы</label>
-  <input type="text" id="group" placeholder="Мысалы: ИС-21" maxlength="50" autocomplete="off">
+  <select id="group">
+    <option value="">Топты таңдаңыз</option>
+    <option>БҚ-9-16</option>
+    <option>АҚ-9-16</option>
+    <option>АҚ-9-36</option>
+    <option>ЕТ-9-16</option>
+    <option>ЕТ-9-36</option>
+    <option>ЕТ-9-56</option>
+  </select>
 
   <label for="fullName">Аты-жөні</label>
   <input type="text" id="fullName" placeholder="Тегі Аты" maxlength="100" autocomplete="name">
@@ -49,7 +57,7 @@
 
 <script>
   // Apps Script "Web app URL" сілтемесін осында қойыңыз (/exec-пен аяқталады)
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5xHgFsc0vfgqa0RuI6Xirfos6MavFaS7eOTgkler65HO8yy6YPIKYJlpDz0OT1eLB/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNRO3wxUDINioHQ0IBgevt5e3hpsV0vxH5ayqvIcrT-Liqlo9S8qJZjiPfYnCRxfDp/exec';
   const MAX_MB = 20;
 
   const $ = id => document.getElementById(id);
